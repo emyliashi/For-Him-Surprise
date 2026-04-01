@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Marvin ❤️</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Quicksand:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --soft-pink: #fce4ec;
+            --deep-rose: #f06292;
+            --text-color: #5d4037;
+            --timeline-border: #d291bc;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--soft-pink);
+            color: var(--text-color);
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* 1. Welcome Screen (Styled to match screenshot) */
+        #lock-screen {
+            position: fixed; inset: 0;
+            background: white; z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center;
+            transition: opacity 0.8s ease;
+        }
+
+        /* 2. Falling Hearts */
+        .heart {
+            position: fixed; color: var(--deep-rose);
+            top: -20px; z-index: 99; pointer-events: none;
+            animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
+
+        /* 3. Layout */
+        #main-content { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        section { width: 100%; min-height: 100vh; padding: 80px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .container { max-width: 600px; width: 90%; margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+
+        /* 4. Timeline Cards */
+        .timeline-item {
+            margin: 50px 0; padding: 20px; border-bottom: 2px solid var(--timeline-border);
+            opacity: 0; transform: translateY(30px); transition: 1s ease;
+            width: 100%; display: flex; flex-direction: column; align-items: center;
+        }
+        .timeline-item.show { opacity: 1; transform: translateY(0); }
+        .timeline-item img { width: 100%; max-width: 400px; border-radius: 15px; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .timeline-item h4 { font-family: 'Dancing Script'; font-size: 2.2rem; margin: 0; color: var(--deep-rose); }
+
+        /* 5. Buttons & Interactive */
+        .choice-container { position: relative; min-height: 300px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 20px; }
+        .btn {
+            background: var(--deep-rose); color: white; border: none; padding: 18px 45px; border-radius: 40px;
+            cursor: pointer; font-size: 1.2rem; transition: 0.3s all ease; box-shadow: 0 5px 15px rgba(240, 98, 146, 0.4);
+        }
+
+        /* 6. Refined Custom Modal (No Button for Final) */
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 7000; display: none; backdrop-filter: blur(3px); }
+        #custom-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.7);
+            background: white; padding: 40px; border-radius: 30px; z-index: 7001;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); display: none; text-align: center;
+            width: 320px; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #custom-modal.active { display: block; transform: translate(-50%, -50%) scale(1); }
+        
+        /* 7. Surprise Screen */
+        #surprise-screen {
+            position: fixed; inset: 0; z-index: 8000; display: none; flex-direction: column; 
+            align-items: center; justify-content: center; text-align: center; padding: 30px; 
+            background: white; transition: opacity 1s ease;
+        }
+
+        .heart-pulse { display: inline-block; animation: pulse 1.5s ease infinite; color: var(--deep-rose); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        
+        .loading-heart { font-size: 2rem; margin-top: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop><source src="YOUR_MUSIC_URL.mp3" type="audio/mpeg"></audio>
+
+    <div id="modal-overlay"></div>
+    <div id="custom-modal">
+        <div id="modal-icon" style="font-size: 3rem; margin-bottom: 15px;">🥺</div>
+        <h3 id="modal-msg" style="margin: 0; font-size: 1.5rem; color: var(--text-color);">Are you sure?</h3>
+        <div id="loader" class="heart-pulse loading-heart">❤️</div>
+        <button id="modal-action-btn" class="btn" style="margin-top: 20px; padding: 12px 30px;" onclick="closeModal()">My Bad! ❤️</button>
+    </div>
+
+    <div id="lock-screen">
+        <div class="container">
+            <h2 style="font-family: 'Dancing Script'; font-size: 3rem; margin-bottom: 10px;">For my sudteerak's Eyes Only ❤️</h2>
+            <p style="margin-bottom: 25px;">where was our first date? ✨</p>
+            <input type="password" id="pass" placeholder="Your answer..." style="padding:18px; border-radius:50px; border:1px solid #eee; text-align:center; width: 280px; outline:none; font-size: 1rem; background: #fdfdfd;">
+            <p id="fail-hint" style="display:none; color: var(--deep-rose); font-size: 0.9rem; margin-top: 15px; font-style: italic;">
+                Hint: It involves caffeine and a lot of laughter... ☕️
+            </p>
+            <button class="btn" onclick="checkPass()" style="margin-top: 20px;">Unlock My Heart</button>
+        </div>
+    </div>
+
+    <div id="main-content" style="display:none;">
+        <section id="hero">
+            <div class="container">
+                <h1 style="font-family: 'Dancing Script'; font-size: 4rem; margin-bottom: 10px;">Hi, My Baby...</h1>
+                <div id="timer" style="font-size: 2.2rem; font-weight: bold; color: var(--deep-rose); margin-bottom: 5px;"></div>
+                <p style="font-size: 1.1rem; letter-spacing: 1px; color: var(--deep-rose); margin-top: 0; margin-bottom: 30px; font-weight: 500;">Until your most special day yet!</p>
+                <div id="letter" style="background:white; border-radius:20px; padding: 40px;">
+                    <h2 style="font-family: 'Dancing Script'; font-size: 2.2rem; color: var(--deep-rose); margin-bottom: 15px;">A Letter to You</h2>
+                    <p id="typing-text" style="font-size: 1.2rem; line-height: 1.8; font-style: italic; margin: 0;"></p>
+                </div>
+                <p style="font-size: 0.9rem; opacity: 0.5; margin-top: 40px;">(Scroll down to see our story...)</p>
+            </div>
+        </section>
+
+        <div id="timeline-container" style="display:none; width: 100%;">
+            <section id="timeline">
+                <div class="container">
+                    <h2 style="font-family: 'Dancing Script'; font-size: 3.5rem; margin-bottom: 20px;">Our Story</h2>
+                    <div class="timeline-item">
+                        <h4>🌸 The Day We Met</h4>
+                        <p>Meeting you felt so natural, like you were always meant to be in my life 💖</p>
+                        <img src="photo1.jpeg">
+                    </div>
+                    <div class="timeline-item">
+                        <h4>💌 Today</h4>
+                        <p>Still the best decision I ever made ❤️</p>
+                        <img src="photo2.jpg">
+                    </div>
+
+                    <h2 style="font-family: 'Dancing Script'; font-size: 3.5rem; margin-top: 120px;">Birthday Itinerary</h2>
+                    <div class="itinerary-box" style="background:white; border-radius:25px; padding:30px; width:100%;">
+                        <div class="itinerary-row"><span class="time">7:00 PM</span><span> Pickup my passenger prince 🌸</span></div>
+                        <div class="itinerary-row"><span class="time">7:30 PM</span><span> Capture our moments at photobooth 🎀</span></div>
+                        <div class="itinerary-row"><span class="time">8:00 PM</span><span> Dinner Date 🍰</span></div>
+                        <div class="itinerary-row"><span class="time">8:45 PM</span><span> Our safe zone 🎬</span></div>
+                        <div class="itinerary-row"><span class="time">9:30 PM</span><span> Final surprise 🎁</span></div>
+                    </div>
+
+                    <div style="margin-top: 100px; padding-bottom: 80px;">
+                        <h2 style="font-size: 2.2rem; margin-bottom: 10px;">Baby, ready to celebrate?</h2>
+                        <div class="choice-container">
+                            <button id="yesBtn" class="btn" onclick="celebrate()">YES! 😍</button>
+                            <button id="noBtn" class="btn" onclick="no_Celebrate()" style="background: #aaa;">No ❤️</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="surprise-screen">
+        <h1 style="font-family: 'Dancing Script'; font-size: 4.5rem; color: var(--deep-rose);">Happy Advance Birthday! 🎉</h1>
+        <h2 style="font-family: 'Dancing Script'; font-size: 3rem; color: var(--deep-rose);">Thank you for being you, Marvin.</h2>
+        <p style="font-size: 1.8rem; color:black;">My Love, Marvin</p>
+        <p style="font-size: 1.3rem; line-height: 1.6; margin: 20px 0; color: var(--deep-rose)">Every second with you is a gift.</p>
+        <div class="heart-pulse" style="font-size: 6rem; margin: 20px 0;">❤️</div>
+        <h2 style="font-family: 'Dancing Script'; font-size: 3.5rem; color:black;">See you at 7 ❤️ <br>
+<button class="btn" onclick="closeSurprise()" style="background:#aaa; margin-top:20px;">Back to Memories</button></h2>
+        
+    </div>
+
+    <script>
+        let noCount = 0;
+        const correctPass = "emy"; 
+
+        function checkPass() {
+            const input = document.getElementById('pass');
+            if(input.value.toLowerCase().trim() === correctPass) {
+                document.getElementById('lock-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('lock-screen').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                    document.getElementById('bg-music').play().catch(() => {});
+                    startTyping();
+                }, 800);
+            } else {
+                input.value = "";
+                openModal("Incorrect! Guess again, Baobei! ❤️");
+            }
+        }
+
+        setInterval(() => {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 3 + 2 + 's';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 5000);
+        }, 350);
+
+        // Timer
+        setInterval(() => {
+            const target = new Date("April 5, 2026 00:00:00").getTime();
+            const diff = target - new Date().getTime();
+            if (diff > 0) {
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                document.getElementById("timer").innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+            } else { document.getElementById("timer").innerHTML = "ITS TIME!"; }
+        }, 1000);
+
+        function startTyping() {
+            const msg = "To my dearest Love, Marvin... you are the best thing that ever happened to me. Scroll down to see our story...";
+            let i = 0;
+            const typing = setInterval(() => {
+                if(i < msg.length) {
+                    document.getElementById("typing-text").innerHTML += msg.charAt(i);
+                    i++;
+                } else { 
+                    clearInterval(typing);
+                    document.getElementById("timeline-container").style.display = "block";
+                    revealTimeline();
+                }
+            }, 50);
+        }
+
+        window.addEventListener("scroll", revealTimeline);
+        function revealTimeline() {
+            const items = document.querySelectorAll(".timeline-item");
+            items.forEach(item => {
+                if (item.getBoundingClientRect().top < window.innerHeight - 80) item.classList.add('show');
+            });
+        }
+
+        // Modal Logic
+        function openModal(msg, isFinal = false) {
+            const modal = document.getElementById('custom-modal');
+            const actionBtn = document.getElementById('modal-action-btn');
+            const loader = document.getElementById('loader');
+            const icon = document.getElementById('modal-icon');
+            
+            document.getElementById('modal-msg').innerHTML = msg;
+            document.getElementById('modal-overlay').style.display = 'block';
+            modal.classList.add('active');
+            
+            if(isFinal) {
+                actionBtn.style.display = 'none';
+                icon.style.display = 'none';
+                loader.style.display = 'block';
+                
+                setTimeout(() => {
+                    closeModal();
+                    document.getElementById('main-content').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('main-content').style.display = 'none';
+                        document.getElementById('surprise-screen').style.display = 'flex';
+                    }, 800);
+                }, 3000);
+            } else {
+                actionBtn.style.display = 'inline-block';
+                icon.style.display = 'block';
+                loader.style.display = 'none';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('custom-modal').classList.remove('active');
+        }
+
+        function celebrate() {
+            confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
+            setTimeout(() => {
+                openModal("Happy Advance Birthday, My Love! 🎂❤️", true);
+            }, 500);
+        }
+
+        function no_Celebrate() {
+            noCount++;
+            const yesBtn = document.getElementById('yesBtn');
+            const noBtn = document.getElementById('noBtn');
+            yesBtn.style.transform = `scale(${1 + noCount * 0.4})`;
+            const phrases = ["Are you sure? 🥺", "For real?? 🤨", "Don't do this! 😭", "Click YES! 😤"];
+            openModal(phrases[Math.min(noCount - 1, phrases.length - 1)]);
+            if (noCount >= 3) {
+                noBtn.style.position = "fixed";
+                noBtn.style.left = Math.random() * (window.innerWidth - 100) + "px";
+                noBtn.style.top = Math.random() * (window.innerHeight - 50) + "px";
+            }
+        }
+
+        function closeSurprise() {
+            document.getElementById('surprise-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('main-content').style.opacity = '1';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
